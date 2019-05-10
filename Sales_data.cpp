@@ -29,21 +29,25 @@ inline double Sales_data::avg_price() const{
         return 0;
 }
 
-Sales_data add(const Sales_data &lhs,const Sales_data &rhs){
+Sales_data Sales_data::add(const Sales_data &lhs,const Sales_data &rhs){
     Sales_data sum = lhs;
     sum.combine(rhs);
     return sum;
 }
 
-ostream &print(ostream &os,const Sales_data &item){
+ostream &Sales_data::print(ostream &os,const Sales_data &item){
     os  << item.isbn() << " " << item.units_sold << " " 
         << item.revenue << " " << item.avg_price();
     return os;
 }
 
-istream &read(istream &is,Sales_data &item){
+istream &Sales_data::read(istream &is,Sales_data &item){
     double price = 0;
     is  >> item.bookNo >> item.units_sold >> price;
     item.revenue = price * item.units_sold;
     return is;
+}
+
+bool compareIsbn(Sales_data s1,Sales_data s2){
+    return s1.isbn().size() < s2.isbn().size();
 }
