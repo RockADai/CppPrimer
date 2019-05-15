@@ -7,8 +7,7 @@
 
 using namespace std;
 
-class Date
-{
+class Date{
 private:
     unsigned year;
     unsigned month;

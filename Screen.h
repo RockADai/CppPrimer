@@ -7,8 +7,7 @@
 
 using namespace std;
 
-class Screen
-{
+class Screen{
 public:
     typedef std::string::size_type pos;
     friend class Window_mgr;

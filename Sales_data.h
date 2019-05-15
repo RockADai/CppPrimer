@@ -6,8 +6,7 @@
 
 using namespace std;
 
-class Sales_data
-{
+class Sales_data{
 public:
     Sales_data() = default;
     Sales_data(const string&);

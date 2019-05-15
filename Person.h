@@ -7,8 +7,7 @@
 
 using namespace std;
 
-class Person
-{
+class Person{
 private:
     string name;//人员姓名
     string address;//人员住址
