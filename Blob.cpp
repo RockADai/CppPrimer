@@ -23,6 +23,10 @@ void Blob::push_back(const string &t){
     data->push_back(t);
 }
 
+void Blob::push_back(string &&s){
+    data->push_back(move(s));
+}
+
 void Blob::pop_back(){
     check(0,"pop_back on empty Blob");
     data->pop_back();

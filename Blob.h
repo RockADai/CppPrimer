@@ -19,6 +19,7 @@ public:
     ~Blob();
     //添加和删除元素
     void push_back(const string &t);
+    void push_back(string &&);
     void pop_back();
     //访问元素
     string &front();
