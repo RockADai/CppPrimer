@@ -13,6 +13,7 @@
 #include <memory>
 #include <map>
 #include <set>
+#include <algorithm>
 
 using namespace std;
 
@@ -31,6 +32,10 @@ class QueryResult{
     friend ostream &print(ostream &,const QueryResult &);
 public:
     QueryResult(string,shared_ptr<set<TextQuery::line_no>>,shared_ptr<vector<string>>);
+    set<TextQuery::line_no>::iterator begin() const{return lines->begin();}
+    set<TextQuery::line_no>::iterator end() const{return lines->end();}
+    shared_ptr<vector<string>> get_file() const{return make_shared<vector<string>>(file);}
+
 private:
     string sought;//查询单词
     shared_ptr<set<TextQuery::line_no>> lines;//出现的行号

@@ -7,8 +7,13 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
+#include <set>
+
+using namespace std;
 
 class Quote{
+    friend double print_total(ostream &os,const Quote &item,size_t n);
 public:
     Quote() = default;
     Quote(const std::string &,double);
@@ -38,6 +43,12 @@ void Quote::debug(){
     std::cout << "In Quote class" << std::endl;
     std::cout << "ISBN:" << bookNo << std::endl;
     std::cout << "Price:" << price << std::endl;
+}
+
+double print_total(ostream &os,const Quote &item,size_t n){
+    double ret = item.net_price(n);
+    os << "ISBN: " << item.isbn() << "\tsold:" << n << "total due: " << ret << endl;
+    return ret;
 }
 
 #endif
