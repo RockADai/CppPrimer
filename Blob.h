@@ -11,149 +11,112 @@
 #include <memory>
 
 using namespace std;
-class BlobPtr;
 
+/*
+* Blob类实现，使用模板方式
+*/
+template <typename> class BlobPtr;
+template <typename T>
 class Blob{
+    friend class BlobPtr<T>;
+    friend bool operator==<T>(const Blob<T> &,const Blob<T> &);
 public:
-    typedef vector<string>::size_type size_type;
+    typedef typename vector<T>::size_type size_type;
     Blob();
-    Blob(initializer_list<string> il);
-    size_type size() const;
-    bool empty() const;
-    friend bool operator==(const Blob &,const Blob &);
-    friend bool operator!=(const Blob &,const Blob &);
-    ~Blob();
+    Blob(initializer_list<T> il);
+    size_type size() const{return data->size();}
+    bool empty() const{return data->empty();}
     //添加和删除元素
-    void push_back(const string &t);
-    void push_back(string &&);
+    void push_back(const T &t){data->push_back(t);}
+    void push_back(T &&t){data->push_back(move(t));}//移动版本
     void pop_back();
     //访问元素
-    string &front();
-    string &back();
-
-    friend class BlobPtr;
-    BlobPtr begin();
-    BlobPtr end();
+    T &back();
+    T &operator[](size_type i);
 private:
-    shared_ptr<vector<string>> data;
-    //若data[i]不合法，则抛出一个异常
+    shared_ptr<vector<T>> data;
+    //若data[i]无效则抛出msg
     void check(size_type i,const string &msg) const;
 };
 
-class BlobPtr{
-public:
-    BlobPtr();
-    BlobPtr(Blob &a,size_t sz = 0);
-    friend bool operator==(const BlobPtr &,const BlobPtr &);
-    friend bool operator!=(const BlobPtr &,const BlobPtr &);
-    string &operator*() const;
-    string *operator->() const;
-    ~BlobPtr();
-    
-    string &deref() const;
-    BlobPtr &incr();//前缀递增
-private:
-    shared_ptr<vector<string>> check(size_t,const string&) const;
-    weak_ptr<vector<string>> wptr;
-    size_t curr;
-};
-
-//Blob类
-Blob::Blob():data(make_shared<vector<string>>()){}
-
-Blob::Blob(initializer_list<string> il):data(make_shared<vector<string>>(il)){}
-
-Blob::size_type Blob::size() const{
-    return data->size();
-}
-
-bool Blob::empty() const{
-    return data->empty();
-}
-
-bool operator==(const Blob &lhs,const Blob &rhs){
+template <typename T>
+bool operator==<T>(const Blob<T> &lhs,const Blob<T> &rhs){
     return lhs.data == rhs.data;
 }
 
-bool operator!=(const Blob &lhs,const Blob &rhs){
-    return !(lhs == rhs);
-}
+template <typename T>
+Blob<T>::Blob():data(make_shared<vector<T>>()){}
 
-string &BlobPtr::operator*() const{
-    auto p = check(curr,"dereference past end");
-    return (*p)[curr];
-}
+template <typename T>
+Blob<T>::Blob(initializer_list<T> il):data(make_shared<vector<T>>(il)){}
 
-string *BlobPtr::operator->() const{
-    return &this->operator*();
-}
-
-Blob::~Blob(){}
-
-void Blob::push_back(const string &t){
-    data->push_back(t);
-}
-
-void Blob::push_back(string &&s){
-    data->push_back(move(s));
-}
-
-void Blob::pop_back(){
+template <typename T>
+void Blob<T>::pop_back(){
     check(0,"pop_back on empty Blob");
     data->pop_back();
 }
 
-string &Blob::front(){
-    check(0,"front on empty Blob");//若vector为空，抛出一个异常
-    return data->front();
-}
-
-string &Blob::back(){
+template <typename T>
+T &Blob<T>::back(){
     check(0,"back on empty Blob");
     return data->back();
 }
 
-void Blob::check(size_type i,const string &msg) const{
+template <typename T>
+T &Blob<T>::operator[](size_type i){
+    check(i,"subscript out of range");
+    return (*data)[i];
+}
+
+template <typename T>
+void Blob<T>::check(size_type i,const string &msg) const{
     if(i >= data->size())
         throw out_of_range(msg);
 }
 
-BlobPtr Blob::begin(){
-    return BlobPtr(*this);
+/*
+* BlobPtr类实现，使用模板方式
+*/
+
+template <typename T>
+class BlobPtr{
+public:
+    BlobPtr():curr(0){}
+    BlobPtr(Blob<T> &a,size_t sz = 0):wptr(a.data),curr(sz){}
+    T &operator*() const{
+        auto p = check(curr,"dereference past end");
+        return (*p)[curr];//*p为本对象指向的vector
+    }
+    //递增和递减
+    BlobPtr &operator++();//前置运算符
+    BlobPtr &operator--();
+private:
+    //若检查成功，返回一个指向vector的shared_ptr
+    shared_ptr<vector<T>> check(size_t,const string &) const;
+    //保存一个weak_ptr，表示底层vector可能被销毁
+    weak_ptr<vector<T>> wptr;
+    size_t curr;//数组中当前位置
+};
+
+//后置：递增/递减对象但返回原值
+template <typename T>
+BlobPtr<T> &BlobPtr<T>::operator++(){
+    //此处无需检查，调用前置递增时会检查
+    BlobPtr ret = *this;//保存当前值
+    ++*this;//推进1个元素，前置++检查递增是否合法
+    return ret;//返回保存状态
 }
 
-BlobPtr Blob::end(){
-    auto ret = BlobPtr(*this,data->size());
-    return ret;
+template <typename T>
+BlobPtr<T> &BlobPtr<T>::operator--(){
+    //此处无需检查，调用前置递减时会检查
+    BlobPtr ret = *this;//保存当前值
+    --*this;//回推1个元素，前置--检查递减是否合法
+    return ret;//返回保存状态
 }
 
-//BlobPtr类
-BlobPtr::BlobPtr():curr(0){}
-
-BlobPtr::BlobPtr(Blob &a,size_t sz = 0):wptr(a.data),curr(sz){}
-
-bool operator==(const BlobPtr &lhs,const BlobPtr &rhs){
-    return lhs.curr == rhs.curr;
-}
-
-bool operator!=(const BlobPtr &lhs,const BlobPtr &rhs){
-    return !(lhs == rhs);
-}
-
-BlobPtr::~BlobPtr(){}
-
-string &BlobPtr::deref() const{
-    auto p = check(curr,"dereference past end");
-    return (*p)[curr];
-}
-
-BlobPtr &BlobPtr::incr(){
-    check(curr,"increment past end of BlobPtr");
-    ++curr;
-    return *this;
-}
-
-shared_ptr<vector<string>> BlobPtr::check(size_t i,const string &msg) const{
+template <typename T>
+shared_ptr<vector<T>> BlobPtr<T>::check(size_t i,const string &msg) const{
     auto ret = wptr.lock();
     if(!ret)//底层vector是否存在
         throw runtime_error("unbound BlobPtr");
