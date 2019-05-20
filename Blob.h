@@ -15,6 +15,7 @@ using namespace std;
 /*
 * Blob类实现，使用模板方式
 */
+
 template <typename> class BlobPtr;
 template <typename T>
 class Blob{
@@ -24,6 +25,8 @@ public:
     typedef typename vector<T>::size_type size_type;
     Blob();
     Blob(initializer_list<T> il);
+    template <typename IT>
+    Blob(IT &a,IT &b):data(make_shared<vector<T>>(a,b)){}
     size_type size() const{return data->size();}
     bool empty() const{return data->empty();}
     //添加和删除元素

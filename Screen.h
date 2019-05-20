@@ -7,77 +7,53 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 
+struct XYC{
+    int x = 0;
+    int y = 0;
+    char c = ' ';
+};
+
+template <unsigned N,unsigned M>
 class Screen{
 public:
-    typedef std::string::size_type pos;
-    friend class Window_mgr;
-
     Screen() = default;
-    Screen(pos ht,pos wd):height(ht),width(wd),contents(ht*wd,' '){}
-    Screen(pos ht,pos wd,char c):height(ht),width(wd),contents(ht*wd,c){}
-    ~Screen(){}
+    Screen(char c):contents(N*M,c){}
 
     char get() const{return contents[cursor];}
-    inline char get(pos ht,pos wd) const;
-    inline Screen &set(char);
-    inline Screen &set(pos,pos,char);
-    Screen &move(pos r,pos c);
-
-    Screen &display(ostream &);
-    const Screen &display(ostream &) const;
+    Screen set(XYC c){
+        cursor = --c.x*width+(--c.y);
+        contents[cursor] = c.c;
+        return *this;
+    }
+    template <unsigned NN,unsigned MM>
+    friend ostream &operator<<(ostream &os,const Screen<NN,MM> &s);
+    template <unsigned NN,unsigned MM>
+    friend istream &operator>>(istream &is,Screen<NN,MM> &s);
 private:
-    pos cursor = 0;
-    pos height = 0,width = 0;
+    unsigned cursor = 0;
+    unsigned width = N;
+    unsigned height = M;
     string contents;
-    void do_display(ostream &os) const{os << contents;}
 };
 
-class Window_mgr{
-public:
-    using ScreenIndex = vector<Screen>::size_type;
-    void clear(ScreenIndex);
-private:
-    vector<Screen> screens{Screen(24,80,' ')};
-};
-
-inline char Screen::get(pos r,pos c) const{
-    pos row = r*width;
-    return contents[row+c];
+template <unsigned NN,unsigned MM>
+ostream &operator<<(ostream &os,const Screen<NN,MM> &s){
+    for(unsigned i = 0;i < s.width;i++){
+        for(unsigned j = 0;j < s.height;j++)
+            putchar(s.contents[i*s.width+j]);
+        putchar('\n');
+    }
+    return os;
 }
-
-Screen &Screen::move(pos r,pos c){
-    pos row = r*width;
-    cursor = row+c;
-    return *this; 
-}
-
-inline Screen &Screen::set(char c){
-    contents[cursor] = c;
-    return *this;
-}
-
-inline Screen &Screen::set(pos r,pos col,char ch){
-    contents[r*width+col] = ch;
-    return *this;
-}
-
-Screen &Screen::display(ostream &os){
-    do_display(os);
-    return *this;
-}
-const Screen &Screen::display(ostream &os) const{
-    do_display(os);
-    return *this;
-}
-
-
-void Window_mgr::clear(ScreenIndex i){
-    Screen &s = screens[i];
-    s.contents = string(s.height*s.width,' ');
+template <unsigned NN,unsigned MM>
+istream &operator>>(istream &is,Screen<NN,MM> &s){
+    XYC c;
+    is >> c;
+    s.set(c);
+    return is;
 }
 
 #endif
